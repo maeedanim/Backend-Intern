@@ -8,6 +8,7 @@ import config from './config/config';
 import { PostModule } from './post/post.module';
 import { ReactionModule } from './reaction/reaction.module';
 import { ReplyModule } from './reply/reply.module';
+import { UserModule } from './user/user.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { ReplyModule } from './reply/reply.module';
     AuthModule,
     ReplyModule,
     ReactionModule,
+    UserModule,
   ],
   controllers: [],
   providers: [],

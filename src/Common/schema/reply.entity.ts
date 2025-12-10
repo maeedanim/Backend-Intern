@@ -5,14 +5,15 @@ export class Reply {
   @Prop({ required: true })
   r_description!: string;
 
-  @Prop({ required: true })
-  commentId!: string;
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true })
+  user!: Types.ObjectId;
 
-  @Prop({ required: true })
-  postId!: string;
-
-  @Prop({ required: true })
-  userId!: string;
+  @Prop({
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Comment',
+    required: true,
+  })
+  comment!: Types.ObjectId;
 
   @Prop({
     type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Reaction' }],

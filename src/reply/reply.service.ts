@@ -3,7 +3,6 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { CreateReplyDto } from '../Common/dtos/createReplyDto';
 import { Comment } from '../Common/schema/comment.entity';
-import { Post } from '../Common/schema/post.entity';
 import { Reply } from '../Common/schema/reply.entity';
 import { User } from '../Common/schema/user.entity';
 
@@ -12,7 +11,6 @@ export class ReplyService {
   constructor(
     @InjectModel(Reply.name) private replyModel: Model<Reply>,
     @InjectModel(Comment.name) private commentModel: Model<Comment>,
-    @InjectModel(Post.name) private postModel: Model<Post>,
     @InjectModel(User.name) private userModel: Model<User>,
   ) {}
 
@@ -33,34 +31,13 @@ export class ReplyService {
       throw new NotFoundException('Comment not found');
     }
 
-    const findPost = await this.postModel.findById(findComment.postId);
-
-    if (!findPost) {
-      throw new NotFoundException('Post not found');
-    }
-
     const newReply = new this.replyModel({
       r_description,
-      postId: findComment.postId,
       commentId,
       userId,
     });
     const savedReply = await newReply.save();
-    await findUser.updateOne({
-      $push: {
-        reply: savedReply._id,
-      },
-    });
-    await findPost.updateOne({
-      $push: {
-        reply: savedReply._id,
-      },
-    });
-    await findComment.updateOne({
-      $push: {
-        reply: savedReply._id,
-      },
-    });
+
     return savedReply;
   }
 

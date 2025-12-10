@@ -20,16 +20,11 @@ export class PostService {
       throw new NotFoundException('User Invalid');
     } else {
       const newpost = new this.postModel({
-        userId,
+        user: findUser._id,
         p_title,
         p_description,
       });
       const savedpost = await newpost.save();
-      await findUser.updateOne({
-        $push: {
-          posts: savedpost._id,
-        },
-      });
       return savedpost;
     }
   }
@@ -37,12 +32,13 @@ export class PostService {
   async getPostById(id: string): Promise<Post> {
     const found = await this.postModel
       .findById(id)
+      .populate('user')
       .populate({
         path: 'comments',
         model: 'Comment',
         populate: [
           {
-            path: 'reply',
+            path: 'replies',
             model: 'Reply',
             populate: [
               {
@@ -63,22 +59,25 @@ export class PostService {
   }
 
   async getAllPost(): Promise<Post[]> {
-    const found = await this.postModel.find().populate({
-      path: 'comments',
-      model: 'Comment',
-      populate: [
-        {
-          path: 'reply',
-          model: 'Reply',
-          populate: [
-            {
-              path: 'reaction',
-              model: 'Reaction',
-            },
-          ],
-        },
-      ],
-    });
+    const found = await this.postModel
+      .find()
+      .populate('user')
+      .populate({
+        path: 'comments',
+        model: 'Comment',
+        populate: [
+          {
+            path: 'replies',
+            model: 'Reply',
+            populate: [
+              {
+                path: 'reactions',
+                model: 'Reaction',
+              },
+            ],
+          },
+        ],
+      });
     if (!found) {
       throw new NotFoundException('Posts are not Created!');
     } else {
@@ -110,7 +109,10 @@ export class PostService {
     if (!found) {
       throw new NotFoundException('Invalid Post.');
     } else {
-      await this.userModel.updateOne({ $pull: { posts: found._id } });
+      await this.userModel.updateOne(
+        { _id: found.user },
+        { $pull: { posts: found._id } },
+      );
       await found.deleteOne();
       console.log('Post Deleted.');
     }

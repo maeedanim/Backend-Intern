@@ -1,7 +1,6 @@
 import {
   BadRequestException,
   Injectable,
-  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
@@ -11,7 +10,6 @@ import { Model } from 'mongoose';
 import { v4 as uuidv4 } from 'uuid';
 import { CreateUserDto } from '../Common/dtos/createUserDto';
 import { LoginUserDto } from '../Common/dtos/loginUserDto';
-import { UpdateUserDto } from '../Common/dtos/updateUserDto';
 import { RefreshToken } from '../Common/schema/refreshToken.entity';
 import { User } from '../Common/schema/user.entity';
 
@@ -93,103 +91,5 @@ export class AuthService {
       throw new UnauthorizedException('Refresh Token is invalid.');
     }
     return this.generateUserTokens(token.userId.toString());
-  }
-
-  async getAllUser(): Promise<User[]> {
-    const found = await this.userModel
-      .find()
-      .populate({
-        path: 'posts',
-        populate: [
-          {
-            path: 'comments',
-            model: 'Comment',
-            populate: [
-              {
-                path: 'reply',
-                model: 'Reply',
-                populate: [
-                  {
-                    path: 'reaction',
-                    model: 'Reaction',
-                  },
-                ],
-              },
-            ],
-          },
-        ],
-      })
-      .populate('comments')
-      .populate('reply')
-      .populate('reaction');
-
-    if (!found) {
-      throw new NotFoundException('Users are not Created!');
-    }
-    return found;
-  }
-
-  async getUserByID(id: string): Promise<User> {
-    const found = await this.userModel
-      .findById(id)
-      .populate({
-        path: 'posts',
-        populate: [
-          {
-            path: 'comments',
-            model: 'Comment',
-            populate: [
-              {
-                path: 'reply',
-                model: 'Reply',
-                populate: [
-                  {
-                    path: 'reaction',
-                    model: 'Reaction',
-                  },
-                ],
-              },
-            ],
-          },
-        ],
-      })
-      .populate('comments')
-      .populate('reply')
-      .populate('reaction');
-
-    if (!found) {
-      throw new NotFoundException('User Is Invalid.');
-    } else {
-      return found;
-    }
-  }
-
-  async updateUserSkillExperience(
-    id: string,
-    updateUserDto: UpdateUserDto,
-  ): Promise<User> {
-    const change = await this.userModel.findByIdAndUpdate(
-      id,
-      {
-        $set: updateUserDto,
-      },
-      { new: true, runValidators: true },
-    );
-    if (!change) {
-      throw new NotFoundException('User is Invalid!');
-    } else {
-      console.log('User Updated.');
-      return change;
-    }
-  }
-
-  async deleteUserById(id: string): Promise<void> {
-    const found = await this.userModel.findById(id);
-    if (!found) {
-      throw new NotFoundException('User Not Found.');
-    } else {
-      await found.deleteOne();
-      console.log('User Deleted.');
-    }
   }
 }

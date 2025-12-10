@@ -17,8 +17,11 @@ export class CommentService {
 
   async createComment(CreateCommentDto: CreateCommentDto, userId: string) {
     const { postId, c_title, c_description } = CreateCommentDto;
+
     const findUser = await this.userModel.findById(userId);
+
     const findPost = await this.postModel.findById(postId);
+
     if (!findUser || !findPost) {
       if (!findUser && !findPost) {
         throw new NotFoundException('User and Post both are invalid');
@@ -31,20 +34,11 @@ export class CommentService {
       const newComment = new this.commentModel({
         c_title,
         c_description,
-        postId,
-        userId,
+        post: findPost._id,
+        user: findUser._id,
       });
       const savedComment = await newComment.save();
-      await findUser.updateOne({
-        $push: {
-          comments: savedComment._id,
-        },
-      });
-      await findPost.updateOne({
-        $push: {
-          comments: savedComment._id,
-        },
-      });
+
       return savedComment;
     }
   }
@@ -62,7 +56,7 @@ export class CommentService {
           },
         ],
       })
-      .populate('reaction');
+      .populate('user');
     if (!found) {
       throw new NotFoundException('Comments are not Created!');
     } else {
@@ -74,7 +68,7 @@ export class CommentService {
     const found = await this.commentModel
       .findById(id)
       .populate({
-        path: 'reply',
+        path: 'replies',
         model: 'Reply',
         populate: [
           {
@@ -83,7 +77,7 @@ export class CommentService {
           },
         ],
       })
-      .populate('reaction');
+      .populate('user');
     if (!found) {
       throw new NotFoundException('Comment Is Invalid.');
     } else {
