@@ -28,7 +28,13 @@ import { UserModule } from './user/user.module';
       inject: [ConfigService],
     }),
 
-    MongooseModule.forRoot('mongodb://localhost/dev_comm'),
+    MongooseModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: (config: ConfigService) => ({
+        uri: config.get<string>('database.uri'),
+      }),
+      inject: [ConfigService],
+    }),
     PostModule,
     CommentModule,
     AuthModule,
