@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User } from '../user/Schemas/user.entity';
@@ -88,7 +92,15 @@ export class PostService {
   async updatePostTitleDescription(
     id: string,
     UpdatePostDto: UpdatePostDto,
+    userId: string,
   ): Promise<Post> {
+    const post = await this.postModel.findById(id);
+    if (!post) {
+      throw new NotFoundException('Post not found');
+    }
+    if (post.user.toString() !== userId) {
+      throw new ForbiddenException('You are not allowed to modify this post');
+    }
     const change = await this.postModel.findByIdAndUpdate(
       id,
       {
@@ -104,17 +116,23 @@ export class PostService {
     }
   }
 
-  async deletePostById(id: string): Promise<void> {
-    const found = await this.postModel.findById(id);
-    if (!found) {
+  async deletePostById(postid: string, userId: string): Promise<void> {
+    const post = await this.postModel.findById(postid);
+
+    if (!post) {
       throw new NotFoundException('Invalid Post.');
-    } else {
-      await this.userModel.updateOne(
-        { _id: found.user },
-        { $pull: { posts: found._id } },
-      );
-      await found.deleteOne();
-      console.log('Post Deleted.');
     }
+
+    if (post.user.toString() !== userId) {
+      throw new ForbiddenException(
+        'You are not allowed to delete another user’s post.',
+      );
+    }
+    // await this.userModel.updateOne(
+    //   { _id: post.user },
+    //   { $pull: { posts: post._id } },
+    // );
+    await post.deleteOne();
+    console.log('Post Deleted.');
   }
 }

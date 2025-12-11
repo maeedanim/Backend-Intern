@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Comment } from '../comment/schema/comment.entity';
@@ -58,13 +62,21 @@ export class ReplyService {
     }
   }
 
-  async deleteReplyById(id: string): Promise<void> {
-    const found = await this.replyModel.findById(id);
+  async deleteReplyById(replyId: string, userId: string): Promise<void> {
+    const found = await this.replyModel.findById(replyId);
     if (!found) {
       throw new NotFoundException('Reply Not Found.');
-    } else {
-      await found.deleteOne();
-      console.log('Reply Deleted.');
     }
+    if (found.user.toString() !== userId) {
+      throw new ForbiddenException(
+        'You are not allowed to delete another user’s post.',
+      );
+    }
+    // await this.userModel.updateOne(
+    //   { _id: found.user },
+    //   { $pull: { posts: found._id } },
+    // );
+    await found.deleteOne();
+    console.log('Reply Deleted.');
   }
 }

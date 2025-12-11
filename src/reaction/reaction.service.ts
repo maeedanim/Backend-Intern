@@ -11,20 +11,17 @@ export class ReactionService {
     private reactionModel: Model<Reaction>,
   ) {}
 
-  // -------------------------------------------------
-  // CREATE OR TOGGLE REACTION
-  // -------------------------------------------------
   async react(userId: string, dto: CreateReactionDto) {
     const { target, type, onModel } = dto;
 
-    // Check if user already reacted on this target
+    // Checks if user already reacted on this target
     const existing = await this.reactionModel.findOne({
       user: userId,
       target,
       onModel,
     });
 
-    // Case 1: No previous reaction → create new reaction
+    // If no previous reaction then create new reaction
     if (!existing) {
       return this.reactionModel.create({
         user: new Types.ObjectId(userId),
@@ -34,31 +31,25 @@ export class ReactionService {
       });
     }
 
-    // Case 2: Same reaction exists → remove reaction (toggle off)
+    // Same reaction exists then remove reaction
     if (existing.type === type) {
       await existing.deleteOne();
       return { removed: true };
     }
 
-    // Case 3: User switches reaction (like -> dislike OR dislike -> like)
+    // User switches reaction (like to dislike OR dislike to like)
     existing.type = type;
     await existing.save();
 
     return existing;
   }
 
-  // -------------------------------------------------
-  // Get reactions for a target (post/comment/reply)
-  // -------------------------------------------------
   async getReactions(targetId: string, onModel: string) {
     return this.reactionModel
       .find({ target: targetId, onModel })
       .populate('user', 'username name');
   }
 
-  // -------------------------------------------------
-  // Count reactions
-  // -------------------------------------------------
   async count(targetId: string, onModel: string) {
     const likes = await this.reactionModel.countDocuments({
       target: targetId,

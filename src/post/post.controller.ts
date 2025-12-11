@@ -51,17 +51,34 @@ export class PostController {
 
   @ApiOperation({ summary: 'Delete a Post using ID' })
   @Delete('/:id')
-  async deletePostById(@Param('id') id: string): Promise<object> {
-    await this.postService.deletePostById(id);
+  async deletePostById(
+    @Req() req: Request,
+    @Param('id') postid: string,
+  ): Promise<object> {
+    const userId = req.user?.userId;
+    if (!userId) {
+      throw new error('Invalid User');
+    }
+    await this.postService.deletePostById(postid, userId);
     return { message: `Post Has Been Removed.` };
   }
 
   @ApiOperation({ summary: 'Update the details of the Post' })
   @Patch('/:id')
   async updatePostById(
+    @Req() req: Request,
     @Param('id') id: string,
     @Body() updatePostDto: UpdatePostDto,
   ): Promise<postEntity> {
-    return await this.postService.updatePostTitleDescription(id, updatePostDto);
+    const userId = req.user?.userId;
+    if (!userId) {
+      throw new error('Invalid User');
+    }
+
+    return await this.postService.updatePostTitleDescription(
+      id,
+      updatePostDto,
+      userId,
+    );
   }
 }

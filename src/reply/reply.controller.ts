@@ -49,8 +49,15 @@ export class ReplyController {
 
   @ApiOperation({ summary: 'Delete a Reply using ID' })
   @Delete('/:id')
-  async deleteReplyById(@Param('id') id: string): Promise<object> {
-    await this.replyService.deleteReplyById(id);
+  async deleteReplyById(
+    @Req() req: Request,
+    @Param('id') replyId: string,
+  ): Promise<object> {
+    const userId = req.user?.userId;
+    if (!userId) {
+      throw new error('Invalid User');
+    }
+    await this.replyService.deleteReplyById(replyId, userId);
     return { message: `Reply Has Been Removed.` };
   }
 }

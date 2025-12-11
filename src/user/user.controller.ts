@@ -2,12 +2,16 @@ import {
   Body,
   Controller,
   Delete,
+  ForbiddenException,
   Get,
   Param,
   Patch,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
+import { error } from 'console';
+import type { Request } from 'express';
 import { AuthGuard } from '../guards/auth.guard';
 import { UpdateUserDto } from './Dtos/updateUserDto';
 import { User } from './Schemas/user.entity';
@@ -34,7 +38,20 @@ export class UserController {
   @ApiOperation({ summary: 'Delete Account using ID' })
   @UseGuards(AuthGuard)
   @Delete('/:id')
-  async deleteUserById(@Param('id') id: string): Promise<object> {
+  async deleteUserById(
+    @Req() req: Request,
+    @Param('id') id: string,
+  ): Promise<object> {
+    const userId = req.user?.userId;
+    if (!userId) {
+      throw new error('Invalid User');
+    }
+
+    if (userId !== id) {
+      throw new ForbiddenException(
+        'You are not allowed to delete another user',
+      );
+    }
     await this.userService.deleteUserById(id);
     return { message: `User Has Been Removed.` };
   }
@@ -43,9 +60,20 @@ export class UserController {
   @UseGuards(AuthGuard)
   @Patch('/:id')
   async updateUserById(
+    @Req() req: Request,
     @Param('id') id: string,
     @Body() updateUserDto: UpdateUserDto,
   ): Promise<User> {
+    const userId = req.user?.userId;
+    if (!userId) {
+      throw new error('Invalid User');
+    }
+
+    if (userId !== id) {
+      throw new ForbiddenException(
+        'You are not allowed to delete another user',
+      );
+    }
     return await this.userService.updateUserSkillExperience(id, updateUserDto);
   }
 }

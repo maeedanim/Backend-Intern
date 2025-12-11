@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Post } from '../post/Schemas/post.entity';
@@ -88,7 +92,15 @@ export class CommentService {
   async updateCommentTitleDescription(
     id: string,
     UpdateCommentDto: UpdateCommentDto,
+    userId: string,
   ): Promise<Comment> {
+    const comment = await this.postModel.findById(id);
+    if (!comment) {
+      throw new NotFoundException('Post not found');
+    }
+    if (comment.user.toString() !== userId) {
+      throw new ForbiddenException('You are not allowed to modify this post');
+    }
     const change = await this.commentModel.findByIdAndUpdate(
       id,
       { $set: UpdateCommentDto },
@@ -105,13 +117,21 @@ export class CommentService {
     }
   }
 
-  async deleteCommentById(id: string): Promise<void> {
-    const found = await this.commentModel.findById(id);
+  async deleteCommentById(commentId: string, userId: string): Promise<void> {
+    const found = await this.commentModel.findById(commentId);
     if (!found) {
       throw new NotFoundException('Comment Not Found.');
-    } else {
-      await found.deleteOne();
-      console.log('Comment Deleted.');
     }
+    if (found.user.toString() !== userId) {
+      throw new ForbiddenException(
+        'You are not allowed to delete another user’s Comment.',
+      );
+    }
+    // await this.userModel.updateOne(
+    //   { _id: found.user },
+    //   { $pull: { posts: found._id } },
+    // );
+    await found.deleteOne();
+    console.log('Comment Deleted.');
   }
 }

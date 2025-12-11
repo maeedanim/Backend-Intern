@@ -12,6 +12,7 @@ import {
 import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { error } from 'console';
 import type { Request } from 'express';
+
 import { AuthGuard } from '../guards/auth.guard';
 import { CommentService } from './comment.service';
 import { CreateCommentDto } from './Dtos/createCommentDto';
@@ -51,20 +52,33 @@ export class CommentController {
 
   @ApiOperation({ summary: 'Delete a Comment using ID' })
   @Delete('/:id')
-  async deleteCommentById(@Param('id') id: string): Promise<object> {
-    await this.commentService.deleteCommentById(id);
+  async deleteCommentById(
+    @Req() req: Request,
+    @Param('id') commentId: string,
+  ): Promise<object> {
+    const userId = req.user?.userId;
+    if (!userId) {
+      throw new error('Invalid User');
+    }
+    await this.commentService.deleteCommentById(commentId, userId);
     return { message: `Comment Has Been Removed.` };
   }
 
   @ApiOperation({ summary: 'Update the description of the comment' })
   @Patch('/:id')
   async updateCommentById(
+    @Req() req: Request,
     @Param('id') id: string,
     @Body() UpdateCommentDto: UpdateCommentDto,
   ): Promise<Comment> {
+    const userId = req.user?.userId;
+    if (!userId) {
+      throw new error('Invalid User');
+    }
     return await this.commentService.updateCommentTitleDescription(
       id,
       UpdateCommentDto,
+      userId,
     );
   }
 }
