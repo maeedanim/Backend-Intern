@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { Post, PostSchema } from '../Common/schema/post.entity';
-import { User, UserSchema } from '../Common/schema/user.entity';
+import { User, UserSchema } from '../user/Schemas/user.entity';
 import { PostController } from './post.controller';
 import { PostService } from './post.service';
+import { Post, PostSchema } from './Schemas/post.entity';
 
 @Module({
   imports: [

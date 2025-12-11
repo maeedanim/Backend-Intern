@@ -1,8 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { UpdateUserDto } from '../Common/dtos/updateUserDto';
-import { User } from '../Common/schema/user.entity';
+import { UpdateUserDto } from './Dtos/updateUserDto';
+import { User } from './Schemas/user.entity';
 
 @Injectable()
 export class UserService {
@@ -12,30 +12,30 @@ export class UserService {
     const found = await this.userModel
       .find()
       .select('-password')
-      .populate({
-        path: 'posts',
-        populate: [
-          {
-            path: 'comments',
-            model: 'Comment',
-            populate: [
-              {
-                path: 'reply',
-                model: 'Reply',
-                populate: [
-                  {
-                    path: 'reaction',
-                    model: 'Reaction',
-                  },
-                ],
-              },
-            ],
-          },
-        ],
-      })
-      .populate('comments')
-      .populate('reply')
-      .populate('reaction')
+      // .populate({
+      //   path: 'posts',
+      //   populate: [
+      //     {
+      //       path: 'comments',
+      //       model: 'Comment',
+      //       populate: [
+      //         {
+      //           path: 'reply',
+      //           model: 'Reply',
+      //           populate: [
+      //             {
+      //               path: 'reaction',
+      //               model: 'Reaction',
+      //             },
+      //           ],
+      //         },
+      //       ],
+      //     },
+      //   ],
+      // })
+      // .populate('comments')
+      // .populate('reply')
+      // .populate('reaction')
       .exec();
 
     if (!found) {
@@ -48,30 +48,30 @@ export class UserService {
     const found = await this.userModel
       .findById(id)
       .select('-password')
-      .populate({
-        path: 'posts',
-        populate: [
-          {
-            path: 'comments',
-            model: 'Comment',
-            populate: [
-              {
-                path: 'reply',
-                model: 'Reply',
-                populate: [
-                  {
-                    path: 'reaction',
-                    model: 'Reaction',
-                  },
-                ],
-              },
-            ],
-          },
-        ],
-      })
-      .populate('comments')
-      .populate('reply')
-      .populate('reaction')
+      // .populate({
+      //   path: 'posts',
+      //   populate: [
+      //     {
+      //       path: 'comments',
+      //       model: 'Comment',
+      //       populate: [
+      //         {
+      //           path: 'reply',
+      //           model: 'Reply',
+      //           populate: [
+      //             {
+      //               path: 'reaction',
+      //               model: 'Reaction',
+      //             },
+      //           ],
+      //         },
+      //       ],
+      //     },
+      //   ],
+      // })
+      // .populate('comments')
+      // .populate('reply')
+      // .populate('reaction')
       .exec();
 
     if (!found) {

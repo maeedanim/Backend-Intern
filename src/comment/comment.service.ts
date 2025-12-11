@@ -1,11 +1,11 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { CreateCommentDto } from '../Common/dtos/createCommentDto';
-import { UpdateCommentDto } from '../Common/dtos/updateCommentDto';
-import { Comment } from '../Common/schema/comment.entity';
-import { Post } from '../Common/schema/post.entity';
-import { User } from '../Common/schema/user.entity';
+import { Post } from '../post/Schemas/post.entity';
+import { User } from '../user/Schemas/user.entity';
+import { CreateCommentDto } from './Dtos/createCommentDto';
+import { UpdateCommentDto } from './Dtos/updateCommentDto';
+import { Comment } from './schema/comment.entity';
 
 @Injectable()
 export class CommentService {

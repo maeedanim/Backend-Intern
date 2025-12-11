@@ -7,12 +7,13 @@ import {
   Patch,
   UseGuards,
 } from '@nestjs/common';
-import { ApiOperation } from '@nestjs/swagger';
-import { UpdateUserDto } from '../Common/dtos/updateUserDto';
-import { User } from '../Common/schema/user.entity';
+import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { AuthGuard } from '../guards/auth.guard';
+import { UpdateUserDto } from './Dtos/updateUserDto';
+import { User } from './Schemas/user.entity';
 import { UserService } from './user.service';
 
+@ApiBearerAuth()
 @Controller('user')
 export class UserController {
   constructor(private userService: UserService) {}

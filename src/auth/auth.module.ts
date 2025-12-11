@@ -1,12 +1,12 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
+import { User, UserSchema } from '../user/Schemas/user.entity';
+import { AuthController } from './auth.controller';
+import { AuthService } from './auth.service';
 import {
   RefreshToken,
   RefreshTokenSchema,
-} from '../Common/schema/refreshToken.entity';
-import { User, UserSchema } from '../Common/schema/user.entity';
-import { AuthController } from './auth.controller';
-import { AuthService } from './auth.service';
+} from './Schemas/refreshToken.entity';
 
 @Module({
   imports: [

@@ -1,10 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { CreateReplyDto } from '../Common/dtos/createReplyDto';
-import { Comment } from '../Common/schema/comment.entity';
-import { Reply } from '../Common/schema/reply.entity';
-import { User } from '../Common/schema/user.entity';
+import { Comment } from '../comment/schema/comment.entity';
+import { User } from '../user/Schemas/user.entity';
+import { CreateReplyDto } from './Dtos/createReplyDto';
+import { Reply } from './Schemas/reply.entity';
 
 @Injectable()
 export class ReplyService {

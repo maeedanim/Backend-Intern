@@ -12,11 +12,11 @@ import {
 import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { error } from 'console';
 import type { Request } from 'express';
-import { CreatePostDto } from '../Common/dtos/createPostDto';
-import { UpdatePostDto } from '../Common/dtos/updatePostDto';
-import { Post as postEntity } from '../Common/schema/post.entity';
 import { AuthGuard } from '../guards/auth.guard';
+import { CreatePostDto } from './Dtos/createPostDto';
+import { UpdatePostDto } from './Dtos/updatePostDto';
 import { PostService } from './post.service';
+import { Post as postEntity } from './Schemas/post.entity';
 
 @ApiBearerAuth()
 @UseGuards(AuthGuard)

@@ -8,10 +8,10 @@ import { InjectModel } from '@nestjs/mongoose';
 import * as bcrypt from 'bcrypt';
 import { Model } from 'mongoose';
 import { v4 as uuidv4 } from 'uuid';
-import { CreateUserDto } from '../Common/dtos/createUserDto';
-import { LoginUserDto } from '../Common/dtos/loginUserDto';
-import { RefreshToken } from '../Common/schema/refreshToken.entity';
-import { User } from '../Common/schema/user.entity';
+import { User } from '../user/Schemas/user.entity';
+import { CreateUserDto } from './Dtos/createUserDto';
+import { LoginUserDto } from './Dtos/loginUserDto';
+import { RefreshToken } from './Schemas/refreshToken.entity';
 
 @Injectable()
 export class AuthService {
