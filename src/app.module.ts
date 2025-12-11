@@ -41,6 +41,7 @@ import { UserModule } from './user/user.module';
     ReplyModule,
     ReactionModule,
     UserModule,
+    //nodemailer
     MailerModule.forRoot({
       transport: {
         host: process.env.EMAIL_HOST,
