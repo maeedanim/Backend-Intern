@@ -40,7 +40,6 @@ export class ReactionService {
     // User switches reaction (like to dislike OR dislike to like)
     existing.type = type;
     await existing.save();
-
     return existing;
   }
 

@@ -1,4 +1,3 @@
-import { MailerModule } from '@nestjs-modules/mailer';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
@@ -42,15 +41,16 @@ import { UserModule } from './user/user.module';
     ReactionModule,
     UserModule,
     //nodemailer
-    MailerModule.forRoot({
-      transport: {
-        host: process.env.EMAIL_HOST,
-        auth: {
-          user: process.env.EMAIL_USERNAME,
-          pass: process.env.EMAIL_PASSWORD,
-        },
-      },
-    }),
+    // MailerModule.forRoot({
+    //   transport: {
+    //     host: process.env.EMAIL_HOST,
+    //     auth: {
+    //       user: process.env.EMAIL_USERNAME,
+    //       pass: process.env.EMAIL_PASSWORD,
+    //     },
+    //   },
+    // }),
+    // MailModule,
   ],
   controllers: [],
   providers: [],

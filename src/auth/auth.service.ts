@@ -8,6 +8,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import * as bcrypt from 'bcrypt';
 import { Model } from 'mongoose';
 import { v4 as uuidv4 } from 'uuid';
+import { MailService } from '../mail/mail.service';
 import { User } from '../user/Schemas/user.entity';
 import { CreateUserDto } from './Dtos/createUserDto';
 import { LoginUserDto } from './Dtos/loginUserDto';
@@ -20,6 +21,7 @@ export class AuthService {
     @InjectModel(RefreshToken.name)
     private refresfTokenModel: Model<RefreshToken>,
     private jwtService: JwtService,
+    private mailService: MailService,
   ) {}
 
   async createUser(CreateUserDto: CreateUserDto) {
@@ -40,6 +42,8 @@ export class AuthService {
       skill,
       experience,
     });
+    await this.mailService.sendUserCreatedEmail(newUser.email, newUser.name);
+
     return newUser;
   }
 
