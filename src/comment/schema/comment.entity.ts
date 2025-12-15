@@ -3,10 +3,10 @@ import mongoose, { Types } from 'mongoose';
 @Schema({ timestamps: true })
 export class Comment {
   @Prop({ required: true })
-  c_title!: string;
+  commentTitle!: string;
 
   @Prop({ required: true })
-  c_description!: string;
+  commentDescription!: string;
 
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true })
   user!: Types.ObjectId;

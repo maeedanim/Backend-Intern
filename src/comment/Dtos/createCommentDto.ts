@@ -5,12 +5,12 @@ export class CreateCommentDto {
   @ApiProperty()
   @IsNotEmpty()
   @IsString()
-  c_title!: string;
+  commentTitle!: string;
 
   @ApiProperty()
   @IsNotEmpty()
   @IsString()
-  c_description!: string;
+  commentDescription!: string;
 
   @ApiProperty()
   @IsNotEmpty()

@@ -18,15 +18,15 @@ export class PostService {
   ) {}
 
   async createPost(CreatePostDto: CreatePostDto, userId: string) {
-    const { p_title, p_description } = CreatePostDto;
+    const { postTitle, postDescription } = CreatePostDto;
     const findUser = await this.userModel.findById(userId);
     if (!findUser) {
       throw new NotFoundException('User Invalid');
     } else {
       const newpost = new this.postModel({
         user: findUser._id,
-        p_title,
-        p_description,
+        postTitle,
+        postDescription,
       });
       const savedpost = await newpost.save();
       return savedpost;

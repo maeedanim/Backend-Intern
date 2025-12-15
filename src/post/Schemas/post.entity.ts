@@ -4,10 +4,10 @@ import mongoose, { Types } from 'mongoose';
 @Schema({ timestamps: true })
 export class Post {
   @Prop({ required: true })
-  p_title!: string;
+  postTitle!: string;
 
   @Prop({ required: true })
-  p_description!: string;
+  postDescription!: string;
 
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true })
   user!: Types.ObjectId;

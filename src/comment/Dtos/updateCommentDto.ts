@@ -4,10 +4,10 @@ export class UpdateCommentDto {
   @ApiProperty()
   @IsOptional()
   @IsString()
-  c_title!: string;
+  commentTitle!: string;
 
   @ApiProperty()
   @IsOptional()
   @IsString()
-  c_description!: string;
+  commentDescription!: string;
 }

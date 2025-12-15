@@ -20,7 +20,7 @@ export class CommentService {
   ) {}
 
   async createComment(CreateCommentDto: CreateCommentDto, userId: string) {
-    const { postId, c_title, c_description } = CreateCommentDto;
+    const { postId, commentTitle, commentDescription } = CreateCommentDto;
 
     const findUser = await this.userModel.findById(userId);
 
@@ -36,8 +36,8 @@ export class CommentService {
       throw new NotFoundException('Post is invalid');
     } else {
       const newComment = new this.commentModel({
-        c_title,
-        c_description,
+        commentTitle,
+        commentDescription,
         post: findPost._id,
         user: findUser._id,
       });
