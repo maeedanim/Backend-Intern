@@ -4,10 +4,10 @@ export class UpdatePostDto {
   @ApiProperty()
   @IsOptional()
   @IsString()
-  p_title!: string;
+  postTitle!: string;
 
   @ApiProperty()
   @IsOptional()
   @IsString()
-  p_description!: string;
+  postDescription!: string;
 }

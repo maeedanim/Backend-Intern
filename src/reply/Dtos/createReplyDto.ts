@@ -5,7 +5,7 @@ export class CreateReplyDto {
   @ApiProperty()
   @IsNotEmpty()
   @IsString()
-  r_description!: string;
+  replydescription!: string;
 
   @ApiProperty()
   @IsNotEmpty()
