@@ -32,7 +32,7 @@ export class UserController {
   @UseGuards(AuthGuard)
   @Get('/:id')
   getUserById(@Param('id') id: string) {
-    return this.userService.getUserByID(id);
+    return this.userService.getUserById(id);
   }
 
   @ApiOperation({ summary: 'Delete Account using ID' })

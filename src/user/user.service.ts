@@ -44,7 +44,7 @@ export class UserService {
     return found;
   }
 
-  async getUserByID(id: string): Promise<User> {
+  async getUserById(id: string): Promise<User> {
     const found = await this.userModel
       .findById(id)
       .select('-password')
