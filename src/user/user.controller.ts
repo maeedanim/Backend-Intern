@@ -12,7 +12,7 @@ import {
 import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { error } from 'console';
 import type { Request } from 'express';
-import { AuthGuard } from '../guards/auth.guard';
+import { AuthGuard } from '../auth/guards/auth.guard';
 import { UpdateUserDto } from './Dtos/updateUserDto';
 import { User } from './Schemas/user.entity';
 import { UserService } from './user.service';

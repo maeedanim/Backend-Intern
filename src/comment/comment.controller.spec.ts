@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { Request } from 'express';
-import { AuthGuard } from '../guards/auth.guard';
+import { AuthGuard } from '../auth/guards/auth.guard';
 import { CommentController } from './comment.controller';
 import { CommentService } from './comment.service';
 describe('CommentController', () => {

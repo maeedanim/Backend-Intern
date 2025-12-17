@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { AuthGuard } from '../guards/auth.guard';
+import { AuthGuard } from '../auth/guards/auth.guard';
 import { ReactionController } from './reaction.controller';
 import { ReactionService } from './reaction.service';
 describe('ReactionController', () => {

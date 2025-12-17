@@ -11,7 +11,7 @@ import {
 import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { error } from 'console';
 import type { Request } from 'express';
-import { AuthGuard } from '../guards/auth.guard';
+import { AuthGuard } from '../auth/guards/auth.guard';
 import { CreateReplyDto } from './Dtos/createReplyDto';
 import { ReplyService } from './reply.service';
 import { Reply } from './Schemas/reply.entity';

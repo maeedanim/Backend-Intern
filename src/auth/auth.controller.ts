@@ -4,12 +4,12 @@ import {
   ApiCreatedResponse,
   ApiOperation,
 } from '@nestjs/swagger';
-import { AuthGuard } from '../guards/auth.guard';
 import { User } from '../user/Schemas/user.entity';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from './Dtos/createUserDto';
 import { LoginUserDto } from './Dtos/loginUserDto';
 import { RefreshTokenDto } from './Dtos/refreshTokenDto';
+import { AuthGuard } from './guards/auth.guard';
 
 @ApiBearerAuth()
 @Controller('auth')

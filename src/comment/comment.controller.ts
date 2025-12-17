@@ -13,7 +13,7 @@ import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { error } from 'console';
 import type { Request } from 'express';
 
-import { AuthGuard } from '../guards/auth.guard';
+import { AuthGuard } from '../auth/guards/auth.guard';
 import { CommentService } from './comment.service';
 import { CreateCommentDto } from './Dtos/createCommentDto';
 import { UpdateCommentDto } from './Dtos/updateCommentDto';
