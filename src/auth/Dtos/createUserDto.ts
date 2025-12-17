@@ -5,30 +5,30 @@ export class CreateUserDto {
   @ApiProperty()
   @IsNotEmpty()
   @IsString()
-  name!: string;
+  name: string;
 
   @ApiProperty()
   @IsNotEmpty()
   @IsString()
-  username!: string;
+  username: string;
 
   @ApiProperty()
   @IsNotEmpty()
   @IsString()
-  email!: string;
+  email: string;
 
   @ApiProperty()
   @IsNotEmpty()
   @IsString()
-  password!: string;
+  password: string;
 
   @ApiProperty()
   @IsNotEmpty()
   @IsString()
-  skill!: string;
+  skill: string;
 
   @ApiProperty()
   @IsNotEmpty()
   @IsString()
-  experience!: string;
+  experience: string;
 }

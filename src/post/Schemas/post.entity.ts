@@ -4,24 +4,24 @@ import mongoose, { Types } from 'mongoose';
 @Schema({ timestamps: true })
 export class Post {
   @Prop({ required: true })
-  postTitle!: string;
+  postTitle: string;
 
   @Prop({ required: true })
-  postDescription!: string;
+  postDescription: string;
 
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true })
-  user!: Types.ObjectId;
+  user: Types.ObjectId;
 
   @Prop({
     type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Comment' }],
     default: [],
   })
-  comments!: Types.ObjectId[];
+  comments: Types.ObjectId[];
 
   @Prop({
     type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Reaction' }],
     default: [],
   })
-  reaction!: Types.ObjectId[];
+  reaction: Types.ObjectId[];
 }
 export const PostSchema = SchemaFactory.createForClass(Post);

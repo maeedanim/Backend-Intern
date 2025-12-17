@@ -3,27 +3,27 @@ import mongoose, { Types } from 'mongoose';
 @Schema({ timestamps: true })
 export class Comment {
   @Prop({ required: true })
-  commentTitle!: string;
+  commentTitle: string;
 
   @Prop({ required: true })
-  commentDescription!: string;
+  commentDescription: string;
 
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true })
-  user!: Types.ObjectId;
+  user: Types.ObjectId;
 
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'Post', required: true })
-  post!: Types.ObjectId;
+  post: Types.ObjectId;
 
   @Prop({
     type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Reply' }],
     default: [],
   })
-  reply!: Types.ObjectId[];
+  reply: Types.ObjectId[];
 
   @Prop({
     type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Reaction' }],
     default: [],
   })
-  reaction!: Types.ObjectId[];
+  reaction: Types.ObjectId[];
 }
 export const CommentSchema = SchemaFactory.createForClass(Comment);

@@ -5,10 +5,10 @@ export class CreatePostDto {
   @ApiProperty()
   @IsNotEmpty()
   @IsString()
-  postTitle!: string;
+  postTitle: string;
 
   @ApiProperty()
   @IsNotEmpty()
   @IsString()
-  postDescription!: string;
+  postDescription: string;
 }

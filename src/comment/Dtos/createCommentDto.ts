@@ -5,15 +5,15 @@ export class CreateCommentDto {
   @ApiProperty()
   @IsNotEmpty()
   @IsString()
-  commentTitle!: string;
+  commentTitle: string;
 
   @ApiProperty()
   @IsNotEmpty()
   @IsString()
-  commentDescription!: string;
+  commentDescription: string;
 
   @ApiProperty()
   @IsNotEmpty()
   @IsMongoId()
-  postId!: string;
+  postId: string;
 }

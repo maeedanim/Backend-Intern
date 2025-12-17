@@ -5,10 +5,10 @@ export class CreateReplyDto {
   @ApiProperty()
   @IsNotEmpty()
   @IsString()
-  replydescription!: string;
+  replyDescription: string;
 
   @ApiProperty()
   @IsNotEmpty()
   @IsMongoId()
-  commentId!: string;
+  commentId: string;
 }

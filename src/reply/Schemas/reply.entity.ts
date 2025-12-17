@@ -6,19 +6,19 @@ export class Reply {
   replydescription!: string;
 
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true })
-  user!: Types.ObjectId;
+  user: Types.ObjectId;
 
   @Prop({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Comment',
     required: true,
   })
-  comment!: Types.ObjectId;
+  comment: Types.ObjectId;
 
   @Prop({
     type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Reaction' }],
     default: [],
   })
-  reaction!: Types.ObjectId[];
+  reaction: Types.ObjectId[];
 }
 export const ReplySchema = SchemaFactory.createForClass(Reply);

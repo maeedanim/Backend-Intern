@@ -2,22 +2,22 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 @Schema({ timestamps: true })
 export class User {
   @Prop({ required: true })
-  name!: string;
+  name: string;
 
   @Prop({ unique: true, required: true })
-  username!: string;
+  username: string;
 
   @Prop({ unique: true, required: true })
-  email!: string;
+  email: string;
 
   @Prop({ required: true })
-  password!: string;
+  password: string;
 
   @Prop({ required: true })
-  skill!: string;
+  skill: string;
 
   @Prop({ required: true })
-  experience!: string;
+  experience: string;
 
   // @Prop({
   //   type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Post' }],

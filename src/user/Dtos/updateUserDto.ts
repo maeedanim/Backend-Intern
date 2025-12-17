@@ -4,10 +4,10 @@ export class UpdateUserDto {
   @ApiProperty()
   @IsOptional()
   @IsString()
-  skill!: string;
+  skill: string;
 
   @ApiProperty()
   @IsOptional()
   @IsString()
-  experience!: string;
+  experience: string;
 }

@@ -5,15 +5,15 @@ export class CreateReactionDto {
   @ApiProperty()
   @IsNotEmpty()
   @IsMongoId()
-  target!: string;
+  target: string;
 
   @ApiProperty()
   @IsNotEmpty()
   @IsEnum(['Post', 'Comment', 'Reply'])
-  onModel!: 'Post' | 'Comment' | 'Reply';
+  onModel: 'Post' | 'Comment' | 'Reply';
 
   @ApiProperty()
   @IsNotEmpty()
   @IsEnum(['like', 'dislike'])
-  type!: 'like' | 'dislike';
+  type: 'like' | 'dislike';
 }

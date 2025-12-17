@@ -23,7 +23,7 @@
     "noFallthroughCasesInSwitch": false,
     "typeRoots": ["./node_modules/@types", "./src/@types"],
     "types": ["node", "express", "jest"],
-    "strictPropertyInitialization": true
+    "strictPropertyInitialization": false
   },
   "include": ["src", "jest.config.ts"]
 }
