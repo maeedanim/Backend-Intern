@@ -24,7 +24,7 @@ export class ReplyController {
 
   @ApiOperation({ summary: 'Search all Replies' })
   @Get()
-  getAllreply(): Promise<Reply[]> {
+  getAllReply(): Promise<Reply[]> {
     return this.replyService.getAllReply();
   }
 

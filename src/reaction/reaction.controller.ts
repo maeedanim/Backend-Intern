@@ -52,6 +52,6 @@ export class ReactionController {
     @Param('targetId') targetId: string,
     @Query('onModel') onModel: 'Post' | 'Comment' | 'Reply',
   ) {
-    return this.reactionService.count(targetId, onModel);
+    return this.reactionService.countReactions(targetId, onModel);
   }
 }

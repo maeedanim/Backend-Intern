@@ -27,7 +27,7 @@ export class CommentController {
 
   @ApiOperation({ summary: 'Search all Comments' })
   @Get()
-  getAllcomment(): Promise<Comment[]> {
+  getAllComment(): Promise<Comment[]> {
     return this.commentService.getAllComment();
   }
 

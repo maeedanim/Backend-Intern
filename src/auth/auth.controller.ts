@@ -34,7 +34,7 @@ export class AuthController {
   @ApiOperation({ summary: 'Refresh Token using old refresh token' })
   @UseGuards(AuthGuard)
   @Post('refresh')
-  async refreshTokens(@Body() refreshTokenDto: RefreshTokenDto) {
+  async refreshToken(@Body() refreshTokenDto: RefreshTokenDto) {
     return this.authService.refreshToken(refreshTokenDto.refreshToken);
   }
 }

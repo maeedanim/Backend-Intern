@@ -32,7 +32,7 @@ export class PostController {
 
   @ApiOperation({ summary: 'Search a specific Posts using ID' })
   @Get('/:id')
-  getPostId(@Param('id') id: string) {
+  getPostById(@Param('id') id: string) {
     return this.postService.getPostById(id);
   }
 

@@ -19,7 +19,7 @@ export class ReplyService {
   ) {}
 
   async createReply(createReplyDto: CreateReplyDto, userId: string) {
-    const { commentId, r_description } = createReplyDto;
+    const { commentId, replydescription } = createReplyDto;
 
     const findUser = await this.userModel.findById(userId);
 
@@ -36,7 +36,7 @@ export class ReplyService {
     }
 
     const newReply = new this.replyModel({
-      r_description,
+      replydescription,
       commentId,
       userId,
     });

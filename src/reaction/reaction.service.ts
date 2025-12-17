@@ -49,7 +49,7 @@ export class ReactionService {
       .populate('user', 'username name');
   }
 
-  async count(targetId: string, onModel: string) {
+  async countReactions(targetId: string, onModel: string) {
     const likes = await this.reactionModel.countDocuments({
       target: targetId,
       onModel,
