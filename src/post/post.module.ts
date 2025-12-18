@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
+import { PostingWindowModule } from '../posting-window/posting-window.module';
 import { User, UserSchema } from '../user/Schemas/user.entity';
 import { PostController } from './post.controller';
 import { PostService } from './post.service';
@@ -7,6 +8,7 @@ import { Post, PostSchema } from './Schemas/post.entity';
 
 @Module({
   imports: [
+    PostingWindowModule,
     MongooseModule.forFeature([
       {
         name: Post.name,

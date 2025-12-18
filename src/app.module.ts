@@ -2,16 +2,21 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { MongooseModule } from '@nestjs/mongoose';
+import { ScheduleModule } from '@nestjs/schedule';
 import { AuthModule } from './auth/auth.module';
 import { CommentModule } from './comment/comment.module';
 import config from './config/config';
 import { PostModule } from './post/post.module';
+import { PostingWindowModule } from './posting-window/posting-window.module';
 import { ReactionModule } from './reaction/reaction.module';
 import { ReplyModule } from './reply/reply.module';
 import { UserModule } from './user/user.module';
 
 @Module({
   imports: [
+    ScheduleModule.forRoot(),
+    PostingWindowModule,
+
     ConfigModule.forRoot({
       isGlobal: true,
       cache: true,
@@ -40,17 +45,7 @@ import { UserModule } from './user/user.module';
     ReplyModule,
     ReactionModule,
     UserModule,
-    //nodemailer
-    // MailerModule.forRoot({
-    //   transport: {
-    //     host: process.env.EMAIL_HOST,
-    //     auth: {
-    //       user: process.env.EMAIL_USERNAME,
-    //       pass: process.env.EMAIL_PASSWORD,
-    //     },
-    //   },
-    // }),
-    // MailModule,
+    PostingWindowModule,
   ],
   controllers: [],
   providers: [],

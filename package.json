@@ -28,6 +28,7 @@
     "@nestjs/jwt": "^11.0.1",
     "@nestjs/mongoose": "^11.0.3",
     "@nestjs/platform-express": "^11.0.1",
+    "@nestjs/schedule": "^6.1.0",
     "@nestjs/swagger": "^11.2.3",
     "@types/bcrypt": "^6.0.0",
     "bcrypt": "^6.0.0",
@@ -38,6 +39,7 @@
     "pug": "^3.0.3",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
+    "save": "^2.9.0",
     "uuid": "^13.0.0"
   },
   "devDependencies": {
