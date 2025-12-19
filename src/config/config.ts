@@ -11,6 +11,6 @@ export default () => ({
   },
   app: {
     host: process.env.HOST,
-    portL: process.env.PORT,
+    port: process.env.PORT,
   },
 });

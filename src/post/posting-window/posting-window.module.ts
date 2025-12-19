@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { PostingWindowGuard } from './Guard/postingWindow.guard';
+import { PostingWindowGuard } from './guards/postingWindow.guard';
 import { PostingWindowCron } from './posting-window.cron';
 import { PostingWindowService } from './posting-window.service';
 

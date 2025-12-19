@@ -17,7 +17,7 @@ import { ReactionTarget } from './reaction-type.enum';
 import { ReactionService } from './reaction.service';
 
 @ApiBearerAuth()
-@Controller('reactions')
+@Controller('reaction')
 export class ReactionController {
   constructor(private readonly reactionService: ReactionService) {}
 

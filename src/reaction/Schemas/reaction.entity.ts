@@ -8,23 +8,25 @@ export class Reaction {
   user: Types.ObjectId;
 
   @Prop({
+    type: String,
     required: true,
     enum: ReactionType,
   })
-  type: ReactionType;
+  type: ReactionType; // Like or Dislike
 
   @Prop({
     type: Types.ObjectId,
     required: true,
     refPath: 'onModel',
   })
-  target: Types.ObjectId;
+  target: Types.ObjectId; // Reference to Post, Comment, or Reply
 
   @Prop({
+    type: String,
     required: true,
     enum: ReactionTarget,
   })
-  onModel: ReactionTarget;
+  onModel: ReactionTarget; // 'Post', 'Comment', or 'Reply'
 }
 
 export const ReactionSchema = SchemaFactory.createForClass(Reaction);

@@ -7,11 +7,12 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import type { Cache } from 'cache-manager';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { User } from '../user/Schemas/user.entity';
 import { CreatePostDto } from './Dtos/createPostDto';
 import { UpdatePostDto } from './Dtos/updatePostDto';
 import { Post } from './Schemas/post.entity';
+import { AggregatedPost } from './post-aggregate.interface';
 
 @Injectable()
 export class PostService {
@@ -37,78 +38,578 @@ export class PostService {
     }
   }
 
-  async getRankedPosts(limit: number) {
+  async getRankedPosts(limit: number): Promise<AggregatedPost[]> {
     const cacheKey = `ranked_posts_${limit}`;
 
-    const cached = await this.cacheManager.get(cacheKey);
+    const cached = await this.cacheManager.get<AggregatedPost[]>(cacheKey);
     if (cached) {
       return cached;
     }
-    const posts = await this.postModel
-      .find()
-      .sort({ 'reaction.count': -1 })
-      .limit(limit)
-      .lean();
+
+    const posts = await this.postModel.aggregate<AggregatedPost>([
+      // Lookup Post Reactions
+      {
+        $lookup: {
+          from: 'reactions',
+          let: { postId: '$_id' },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ['$target', '$$postId'] },
+                    { $eq: ['$onModel', 'Post'] },
+                  ],
+                },
+              },
+            },
+            {
+              $group: {
+                _id: '$type',
+                count: { $sum: 1 },
+              },
+            },
+          ],
+          as: 'postReactions',
+        },
+      },
+      // Compute total reactions (likes + dislikes)
+      {
+        $addFields: {
+          totalReactions: {
+            $sum: '$postReactions.count',
+          },
+        },
+      },
+      // Optional: include user info
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'user',
+          foreignField: '_id',
+          as: 'user',
+        },
+      },
+      { $unwind: '$user' },
+
+      // Sort by totalReactions descending
+      { $sort: { totalReactions: -1 } },
+
+      // Limit
+      { $limit: limit },
+
+      // Optional: remove intermediate fields
+      {
+        $project: {
+          postReactions: 0,
+        },
+      },
+    ]);
 
     await this.cacheManager.set(cacheKey, posts, 30);
 
     return posts;
   }
 
-  async getPostById(id: string): Promise<Post> {
-    const found = await this.postModel
-      .findById(id)
-      .populate('user')
-      .populate({
-        path: 'comments',
-        model: 'Comment',
-        populate: [
-          {
-            path: 'replies',
-            model: 'Reply',
-            populate: [
-              {
-                path: 'reaction',
-                model: 'Reaction',
+  async getPostById(postId: string) {
+    const postObjectId = new Types.ObjectId(postId);
+
+    const result = await this.postModel.aggregate<AggregatedPost>([
+      { $match: { _id: postObjectId } }, // Match Post ID
+      // lookup User
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'user',
+          foreignField: '_id',
+          as: 'user',
+        },
+      },
+      { $unwind: '$user' },
+
+      // Post Reactions
+      {
+        $lookup: {
+          from: 'reactions',
+          let: { postId: '$_id' },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ['$target', '$$postId'] },
+                    { $eq: ['$onModel', 'Post'] },
+                  ],
+                },
               },
-            ],
+            },
+            {
+              $group: {
+                _id: '$type',
+                count: { $sum: 1 },
+              },
+            },
+          ],
+          as: 'postReactions',
+        },
+      },
+
+      {
+        $addFields: {
+          reactions: {
+            likes: {
+              $ifNull: [
+                {
+                  $arrayElemAt: [
+                    {
+                      $filter: {
+                        input: '$postReactions',
+                        as: 'r',
+                        cond: { $eq: ['$$r._id', 'LIKE'] },
+                      },
+                    },
+                    0,
+                  ],
+                },
+                { count: 0 },
+              ],
+            },
+            dislikes: {
+              $ifNull: [
+                {
+                  $arrayElemAt: [
+                    {
+                      $filter: {
+                        input: '$postReactions',
+                        as: 'r',
+                        cond: { $eq: ['$$r._id', 'DISLIKE'] },
+                      },
+                    },
+                    0,
+                  ],
+                },
+                { count: 0 },
+              ],
+            },
           },
-        ],
-      })
-      .populate('reply')
-      .populate('reaction');
-    if (!found) {
-      throw new NotFoundException('Post Is Invalid.');
-    } else {
-      return found;
-    }
+        },
+      },
+      // Comments
+      {
+        $lookup: {
+          from: 'comments',
+          let: { postId: '$_id' },
+          pipeline: [
+            {
+              $match: {
+                $expr: { $eq: ['$post', '$$postId'] },
+              },
+            },
+            // Comment Author
+            {
+              $lookup: {
+                from: 'users',
+                localField: 'user',
+                foreignField: '_id',
+                as: 'user',
+              },
+            },
+            { $unwind: '$user' },
+            //Comment Reactions
+            {
+              $lookup: {
+                from: 'reactions',
+                let: { commentId: '$_id' },
+                pipeline: [
+                  {
+                    $match: {
+                      $expr: {
+                        $and: [
+                          { $eq: ['$target', '$$commentId'] },
+                          { $eq: ['$onModel', 'Comment'] },
+                        ],
+                      },
+                    },
+                  },
+                  {
+                    $group: {
+                      _id: '$type',
+                      count: { $sum: 1 },
+                    },
+                  },
+                ],
+                as: 'commentReactions',
+              },
+            },
+            {
+              $addFields: {
+                reactions: {
+                  likes: {
+                    $size: {
+                      $filter: {
+                        input: '$commentReactions',
+                        as: 'r',
+                        cond: { $eq: ['$$r._id', 'LIKE'] },
+                      },
+                    },
+                  },
+                  dislikes: {
+                    $size: {
+                      $filter: {
+                        input: '$commentReactions',
+                        as: 'r',
+                        cond: { $eq: ['$$r._id', 'DISLIKE'] },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+
+            //Replies
+            {
+              $lookup: {
+                from: 'replies',
+                let: { commentId: '$_id' },
+                pipeline: [
+                  {
+                    $match: {
+                      $expr: { $eq: ['$comment', '$$commentId'] },
+                    },
+                  },
+
+                  // Reply Author
+                  {
+                    $lookup: {
+                      from: 'users',
+                      localField: 'user',
+                      foreignField: '_id',
+                      as: 'user',
+                    },
+                  },
+                  { $unwind: '$user' },
+
+                  //Reply Reactions
+                  {
+                    $lookup: {
+                      from: 'reactions',
+                      let: { replyId: '$_id' },
+                      pipeline: [
+                        {
+                          $match: {
+                            $expr: {
+                              $and: [
+                                { $eq: ['$target', '$$replyId'] },
+                                { $eq: ['$onModel', 'Reply'] },
+                              ],
+                            },
+                          },
+                        },
+                        {
+                          $group: {
+                            _id: '$type',
+                            count: { $sum: 1 },
+                          },
+                        },
+                      ],
+                      as: 'replyReactions',
+                    },
+                  },
+
+                  {
+                    $addFields: {
+                      reactions: {
+                        likes: {
+                          $size: {
+                            $filter: {
+                              input: '$replyReactions',
+                              as: 'r',
+                              cond: { $eq: ['$$r._id', 'LIKE'] },
+                            },
+                          },
+                        },
+                        dislikes: {
+                          $size: {
+                            $filter: {
+                              input: '$replyReactions',
+                              as: 'r',
+                              cond: { $eq: ['$$r._id', 'DISLIKE'] },
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                ],
+                as: 'replies',
+              },
+            },
+          ],
+          as: 'comments',
+        },
+      },
+
+      // Cleanup
+      {
+        $project: {
+          postReactions: 0,
+          'comments.commentReactions': 0,
+          'comments.replies.replyReactions': 0,
+        },
+      },
+    ]);
+
+    if (!result.length) throw new NotFoundException('Post not found');
+    return result[0];
   }
 
-  async getAllPost(): Promise<Post[]> {
-    const found = await this.postModel
-      .find()
-      .populate('user')
-      .populate({
-        path: 'comments',
-        model: 'Comment',
-        populate: [
-          {
-            path: 'replies',
-            model: 'Reply',
-            populate: [
-              {
-                path: 'reactions',
-                model: 'Reaction',
+  async getAllPost() {
+    const result = await this.postModel.aggregate<AggregatedPost>([
+      // Post Author
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'user',
+          foreignField: '_id',
+          as: 'user',
+        },
+      },
+      { $unwind: '$user' },
+
+      // Post Reactions
+      {
+        $lookup: {
+          from: 'reactions',
+          let: { postId: '$_id' },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ['$target', '$$postId'] },
+                    { $eq: ['$onModel', 'Post'] },
+                  ],
+                },
               },
-            ],
+            },
+            {
+              $group: {
+                _id: '$type',
+                count: { $sum: 1 },
+              },
+            },
+          ],
+          as: 'postReactions',
+        },
+      },
+      {
+        $addFields: {
+          reactions: {
+            likes: {
+              $ifNull: [
+                {
+                  $arrayElemAt: [
+                    {
+                      $filter: {
+                        input: '$postReactions',
+                        as: 'r',
+                        cond: { $eq: ['$$r._id', 'LIKE'] },
+                      },
+                    },
+                    0,
+                  ],
+                },
+                { count: 0 },
+              ],
+            },
+            dislikes: {
+              $ifNull: [
+                {
+                  $arrayElemAt: [
+                    {
+                      $filter: {
+                        input: '$postReactions',
+                        as: 'r',
+                        cond: { $eq: ['$$r._id', 'DISLIKE'] },
+                      },
+                    },
+                    0,
+                  ],
+                },
+                { count: 0 },
+              ],
+            },
           },
-        ],
-      });
-    if (!found) {
-      throw new NotFoundException('Posts are not Created!');
-    } else {
-      return found;
-    }
+        },
+      },
+
+      // Comments
+      {
+        $lookup: {
+          from: 'comments',
+          let: { postId: '$_id' },
+          pipeline: [
+            {
+              $match: {
+                $expr: { $eq: ['$post', '$$postId'] },
+              },
+            },
+
+            // Comment Author
+            {
+              $lookup: {
+                from: 'users',
+                localField: 'user',
+                foreignField: '_id',
+                as: 'user',
+              },
+            },
+            { $unwind: '$user' },
+
+            //Comment Reactions
+            {
+              $lookup: {
+                from: 'reactions',
+                let: { commentId: '$_id' },
+                pipeline: [
+                  {
+                    $match: {
+                      $expr: {
+                        $and: [
+                          { $eq: ['$target', '$$commentId'] },
+                          { $eq: ['$onModel', 'Comment'] },
+                        ],
+                      },
+                    },
+                  },
+                  {
+                    $group: {
+                      _id: '$type',
+                      count: { $sum: 1 },
+                    },
+                  },
+                ],
+                as: 'commentReactions',
+              },
+            },
+            {
+              $addFields: {
+                reactions: {
+                  likes: {
+                    $size: {
+                      $filter: {
+                        input: '$commentReactions',
+                        as: 'r',
+                        cond: { $eq: ['$$r._id', 'LIKE'] },
+                      },
+                    },
+                  },
+                  dislikes: {
+                    $size: {
+                      $filter: {
+                        input: '$commentReactions',
+                        as: 'r',
+                        cond: { $eq: ['$$r._id', 'DISLIKE'] },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+
+            // Replies
+            {
+              $lookup: {
+                from: 'replies',
+                let: { commentId: '$_id' },
+                pipeline: [
+                  {
+                    $match: {
+                      $expr: { $eq: ['$comment', '$$commentId'] },
+                    },
+                  },
+
+                  // Reply Author
+                  {
+                    $lookup: {
+                      from: 'users',
+                      localField: 'user',
+                      foreignField: '_id',
+                      as: 'user',
+                    },
+                  },
+                  { $unwind: '$user' },
+
+                  // Reply Reactions
+                  {
+                    $lookup: {
+                      from: 'reactions',
+                      let: { replyId: '$_id' },
+                      pipeline: [
+                        {
+                          $match: {
+                            $expr: {
+                              $and: [
+                                { $eq: ['$target', '$$replyId'] },
+                                { $eq: ['$onModel', 'Reply'] },
+                              ],
+                            },
+                          },
+                        },
+                        {
+                          $group: {
+                            _id: '$type',
+                            count: { $sum: 1 },
+                          },
+                        },
+                      ],
+                      as: 'replyReactions',
+                    },
+                  },
+                  {
+                    $addFields: {
+                      reactions: {
+                        likes: {
+                          $size: {
+                            $filter: {
+                              input: '$replyReactions',
+                              as: 'r',
+                              cond: { $eq: ['$$r._id', 'LIKE'] },
+                            },
+                          },
+                        },
+                        dislikes: {
+                          $size: {
+                            $filter: {
+                              input: '$replyReactions',
+                              as: 'r',
+                              cond: { $eq: ['$$r._id', 'DISLIKE'] },
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                ],
+                as: 'replies',
+              },
+            },
+          ],
+          as: 'comments',
+        },
+      },
+
+      // Cleanup
+      {
+        $project: {
+          postReactions: 0,
+          'comments.commentReactions': 0,
+          'comments.replies.replyReactions': 0,
+        },
+      },
+    ]);
+
+    return result;
   }
 
   async updatePostTitleDescription(
@@ -150,10 +651,7 @@ export class PostService {
         'You are not allowed to delete another user’s post.',
       );
     }
-    // await this.userModel.updateOne(
-    //   { _id: post.user },
-    //   { $pull: { posts: post._id } },
-    // );
+
     await post.deleteOne();
     console.log('Post Deleted.');
   }

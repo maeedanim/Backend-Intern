@@ -3,7 +3,7 @@ import { Request } from 'express';
 import { AuthGuard } from '../auth/guards/auth.guard';
 import { PostController } from './post.controller';
 import { PostService } from './post.service';
-import { PostingWindowGuard } from './posting-window/Guard/postingWindow.guard';
+import { PostingWindowGuard } from './posting-window/guards/postingWindow.guard';
 
 describe('PostController', () => {
   let controller: PostController;

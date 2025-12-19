@@ -17,11 +17,5 @@ export class Post {
     default: [],
   })
   comments: Types.ObjectId[];
-
-  @Prop({
-    type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Reaction' }],
-    default: [],
-  })
-  reaction: Types.ObjectId[];
 }
 export const PostSchema = SchemaFactory.createForClass(Post);

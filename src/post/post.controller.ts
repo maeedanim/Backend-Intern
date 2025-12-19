@@ -1,22 +1,26 @@
 import {
   Body,
   Controller,
+  DefaultValuePipe,
   Delete,
   Get,
   Param,
+  ParseIntPipe,
   Patch,
   Post,
+  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiQuery } from '@nestjs/swagger';
 import { error } from 'console';
 import type { Request } from 'express';
 import { AuthGuard } from '../auth/guards/auth.guard';
 import { CreatePostDto } from './Dtos/createPostDto';
 import { UpdatePostDto } from './Dtos/updatePostDto';
+import { AggregatedPost } from './post-aggregate.interface';
 import { PostService } from './post.service';
-import { PostingWindowGuard } from './posting-window/Guard/postingWindow.guard';
+import { PostingWindowGuard } from './posting-window/guards/postingWindow.guard';
 import { Post as postEntity } from './Schemas/post.entity';
 @ApiBearerAuth()
 @Controller('post')
@@ -24,16 +28,31 @@ export class PostController {
   constructor(private postService: PostService) {}
 
   @UseGuards(AuthGuard)
+  @ApiOperation({ summary: 'Get ranked posts based on reactions' })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    example: 10,
+  })
+  @Get('/ranked')
+  async getRankedPosts(
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe)
+    limit: number,
+  ): Promise<AggregatedPost[]> {
+    return await this.postService.getRankedPosts(limit);
+  }
+
+  @UseGuards(AuthGuard)
   @ApiOperation({ summary: 'Search all Posts' })
   @Get()
-  getAllPost(): Promise<postEntity[]> {
+  getAllPost(): Promise<AggregatedPost[]> {
     return this.postService.getAllPost();
   }
 
   @UseGuards(AuthGuard)
   @ApiOperation({ summary: 'Search a specific Posts using ID' })
   @Get('/:id')
-  getPostById(@Param('id') id: string) {
+  getPostById(@Param('id') id: string): Promise<AggregatedPost> {
     return this.postService.getPostById(id);
   }
 
