@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class PostingWindowService {
-  private postingEnabled = true;
+  private postingEnabled = false;
 
   enable() {
     this.postingEnabled = true;

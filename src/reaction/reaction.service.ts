@@ -3,64 +3,87 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { CreateReactionDto } from './Dtos/createReactionDto';
 import { Reaction } from './Schemas/reaction.entity';
+import { ReactionTarget, ReactionType } from './reaction-type.enum';
+
+interface ReactionCountResult {
+  _id: ReactionType;
+  count: number;
+}
 
 @Injectable()
 export class ReactionService {
   constructor(
     @InjectModel(Reaction.name)
-    private reactionModel: Model<Reaction>,
+    private readonly reactionModel: Model<Reaction>,
   ) {}
 
   async react(userId: string, dto: CreateReactionDto) {
-    const { target, type, onModel } = dto;
+    const userObjectId = new Types.ObjectId(userId);
+    const targetObjectId = new Types.ObjectId(dto.target);
+    const reactionType = dto.type as ReactionType;
+    const reactionTarget = dto.onModel as ReactionTarget;
 
-    // Checks if user already reacted on this target
-    const existing = await this.reactionModel.findOne({
-      user: userId,
-      target,
-      onModel,
+    const existingReaction = await this.reactionModel.findOne({
+      user: userObjectId,
+      target: targetObjectId,
+      onModel: reactionTarget,
     });
 
-    // If no previous reaction then create new reaction
-    if (!existing) {
-      return this.reactionModel.create({
-        user: new Types.ObjectId(userId),
-        target,
-        type,
-        onModel,
+    if (!existingReaction) {
+      await this.reactionModel.create({
+        user: userObjectId,
+        target: targetObjectId,
+        type: reactionType,
+        onModel: reactionTarget,
       });
+
+      return { message: 'Reaction added', action: 'added' };
     }
 
-    // Same reaction exists then remove reaction
-    if (existing.type === type) {
-      await existing.deleteOne();
-      return { removed: true };
+    if (existingReaction.type === reactionType) {
+      await existingReaction.deleteOne();
+
+      return { message: 'Reaction removed', action: 'removed' };
     }
 
-    // User switches reaction (like to dislike OR dislike to like)
-    existing.type = type;
-    await existing.save();
-    return existing;
+    existingReaction.type = reactionType;
+    await existingReaction.save();
+
+    return { message: 'Reaction updated', action: 'updated' };
   }
 
-  async getReactions(targetId: string, onModel: string) {
+  async getReactions(targetId: string, onModel: ReactionTarget) {
     return this.reactionModel
-      .find({ target: targetId, onModel })
+      .find({
+        target: new Types.ObjectId(targetId),
+        onModel,
+      })
       .populate('user', 'username name');
   }
 
-  async countReactions(targetId: string, onModel: string) {
-    const likes = await this.reactionModel.countDocuments({
-      target: targetId,
-      onModel,
-      type: 'like',
-    });
+  async countReactions(targetId: string, onModel: ReactionTarget) {
+    const result = await this.reactionModel.aggregate<ReactionCountResult>([
+      {
+        $match: {
+          target: new Types.ObjectId(targetId),
+          onModel,
+        },
+      },
+      {
+        $group: {
+          _id: '$type',
+          count: { $sum: 1 },
+        },
+      },
+    ]);
 
-    const dislikes = await this.reactionModel.countDocuments({
-      target: targetId,
-      onModel,
-      type: 'dislike',
-    });
+    let likes = 0;
+    let dislikes = 0;
+
+    for (const r of result) {
+      if (r._id === ReactionType.LIKE) likes = r.count;
+      if (r._id === ReactionType.DISLIKE) dislikes = r.count;
+    }
 
     return { likes, dislikes };
   }

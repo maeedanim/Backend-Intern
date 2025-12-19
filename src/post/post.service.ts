@@ -1,9 +1,12 @@
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import {
   ForbiddenException,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
+import type { Cache } from 'cache-manager';
 import { Model } from 'mongoose';
 import { User } from '../user/Schemas/user.entity';
 import { CreatePostDto } from './Dtos/createPostDto';
@@ -13,6 +16,7 @@ import { Post } from './Schemas/post.entity';
 @Injectable()
 export class PostService {
   constructor(
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
     @InjectModel(Post.name) private postModel: Model<Post>,
     @InjectModel(User.name) private userModel: Model<User>,
   ) {}
@@ -31,6 +35,24 @@ export class PostService {
       const savedpost = await newpost.save();
       return savedpost;
     }
+  }
+
+  async getRankedPosts(limit: number) {
+    const cacheKey = `ranked_posts_${limit}`;
+
+    const cached = await this.cacheManager.get(cacheKey);
+    if (cached) {
+      return cached;
+    }
+    const posts = await this.postModel
+      .find()
+      .sort({ 'reaction.count': -1 })
+      .limit(limit)
+      .lean();
+
+    await this.cacheManager.set(cacheKey, posts, 30);
+
+    return posts;
   }
 
   async getPostById(id: string): Promise<Post> {

@@ -13,10 +13,10 @@ import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { error } from 'console';
 import type { Request } from 'express';
 import { AuthGuard } from '../auth/guards/auth.guard';
-import { PostingWindowGuard } from '../posting-window/Guard/postingWindow.guard';
 import { CreatePostDto } from './Dtos/createPostDto';
 import { UpdatePostDto } from './Dtos/updatePostDto';
 import { PostService } from './post.service';
+import { PostingWindowGuard } from './posting-window/Guard/postingWindow.guard';
 import { Post as postEntity } from './Schemas/post.entity';
 @ApiBearerAuth()
 @Controller('post')

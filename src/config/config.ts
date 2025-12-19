@@ -9,4 +9,8 @@ export default () => ({
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
+  app: {
+    host: process.env.HOST,
+    portL: process.env.PORT,
+  },
 });

@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { PostingWindowModule } from '../posting-window/posting-window.module';
+import { PostingWindowModule } from '../post/posting-window/posting-window.module';
 import { User, UserSchema } from '../user/Schemas/user.entity';
 import { PostController } from './post.controller';
 import { PostService } from './post.service';
