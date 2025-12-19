@@ -37,8 +37,8 @@ export class ReplyService {
 
     const newReply = new this.replyModel({
       replyDescription,
-      commentId,
-      userId,
+      comment: commentId,
+      user: userId,
     });
     const savedReply = await newReply.save();
 

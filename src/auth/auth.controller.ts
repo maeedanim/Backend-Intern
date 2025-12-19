@@ -1,9 +1,5 @@
 import { Body, Controller, Post, UseGuards } from '@nestjs/common';
-import {
-  ApiBearerAuth,
-  ApiCreatedResponse,
-  ApiOperation,
-} from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { User } from '../user/Schemas/user.entity';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from './Dtos/createUserDto';
@@ -17,9 +13,6 @@ export class AuthController {
   constructor(private authService: AuthService) {}
 
   @ApiOperation({ summary: 'Create a Developer' })
-  @ApiCreatedResponse({
-    description: 'Developer has been created Successfully',
-  })
   @Post('signup')
   async createUser(@Body() createUserDto: CreateUserDto): Promise<User> {
     return await this.authService.createUser(createUserDto);

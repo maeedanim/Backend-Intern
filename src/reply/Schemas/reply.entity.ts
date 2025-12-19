@@ -3,7 +3,7 @@ import mongoose, { Types } from 'mongoose';
 @Schema({ timestamps: true })
 export class Reply {
   @Prop({ required: true })
-  replydescription!: string;
+  replyDescription!: string;
 
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true })
   user: Types.ObjectId;
