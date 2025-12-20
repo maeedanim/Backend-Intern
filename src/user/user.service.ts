@@ -9,34 +9,32 @@ export class UserService {
   constructor(@InjectModel(User.name) private userModel: Model<User>) {}
 
   async getAllUser(): Promise<User[]> {
-    const found = await this.userModel
-      .find()
-      .select('-password')
-      // .populate({
-      //   path: 'posts',
-      //   populate: [
-      //     {
-      //       path: 'comments',
-      //       model: 'Comment',
-      //       populate: [
-      //         {
-      //           path: 'reply',
-      //           model: 'Reply',
-      //           populate: [
-      //             {
-      //               path: 'reaction',
-      //               model: 'Reaction',
-      //             },
-      //           ],
-      //         },
-      //       ],
-      //     },
-      //   ],
-      // })
-      // .populate('comments')
-      // .populate('reply')
-      // .populate('reaction')
-      .exec();
+    const found = await this.userModel.find().select('-password');
+    // .populate({
+    //   path: 'posts',
+    //   populate: [
+    //     {
+    //       path: 'comments',
+    //       model: 'Comment',
+    //       populate: [
+    //         {
+    //           path: 'reply',
+    //           model: 'Reply',
+    //           populate: [
+    //             {
+    //               path: 'reaction',
+    //               model: 'Reaction',
+    //             },
+    //           ],
+    //         },
+    //       ],
+    //     },
+    //   ],
+    // })
+    // .populate('comments')
+    // .populate('reply')
+    // .populate('reaction')
+    //.exec();
 
     if (!found) {
       throw new NotFoundException('Users are not Created!');
@@ -72,6 +70,7 @@ export class UserService {
       // .populate('comments')
       // .populate('reply')
       // .populate('reaction')
+      //.lean();
       .exec();
 
     if (!found) {

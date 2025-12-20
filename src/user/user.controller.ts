@@ -28,6 +28,7 @@ export class UserController {
     return this.userService.getAllUser();
   }
 
+  //@UseInterceptors(ClassSerializerInterceptor)
   @ApiOperation({ summary: 'Search a specific developers by ID' })
   @UseGuards(AuthGuard)
   @Get('/:id')

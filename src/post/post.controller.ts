@@ -28,7 +28,7 @@ export class PostController {
   constructor(private postService: PostService) {}
 
   @UseGuards(AuthGuard)
-  @ApiOperation({ summary: 'Get ranked posts based on reactions' })
+  @ApiOperation({ summary: 'Get Ranked posts based on Reactions and Comments' })
   @ApiQuery({
     name: 'limit',
     required: false,
@@ -43,17 +43,19 @@ export class PostController {
   }
 
   @UseGuards(AuthGuard)
-  @ApiOperation({ summary: 'Search all Posts' })
+  @ApiOperation({ summary: 'Search all Posts with comments and Replies' })
   @Get()
   getAllPost(): Promise<AggregatedPost[]> {
     return this.postService.getAllPost();
   }
 
   @UseGuards(AuthGuard)
-  @ApiOperation({ summary: 'Search a specific Posts using ID' })
+  @ApiOperation({
+    summary: 'Search a specific Post with comments and replies using ID',
+  })
   @Get('/:id')
-  getPostById(@Param('id') id: string): Promise<AggregatedPost> {
-    return this.postService.getPostById(id);
+  getPostByID(@Param('id') id: string): Promise<AggregatedPost> {
+    return this.postService.getPostByID(id);
   }
 
   @UseGuards(AuthGuard, PostingWindowGuard)

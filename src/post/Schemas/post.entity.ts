@@ -12,16 +12,16 @@ export class Post {
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true })
   user: Types.ObjectId;
 
-  @Prop({
-    type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Comment' }],
-    default: [],
-  })
-  comments: Types.ObjectId[];
+  // @Prop({
+  //   type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Comment' }],
+  //   default: [],
+  // })
+  // comments: Types.ObjectId[];
 
-  @Prop({
-    type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Reply' }],
-    default: [],
-  })
-  replies: Types.ObjectId[];
+  // @Prop({
+  //   type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Reply' }],
+  //   default: [],
+  // })
+  // replies: Types.ObjectId[];
 }
 export const PostSchema = SchemaFactory.createForClass(Post);

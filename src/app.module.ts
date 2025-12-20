@@ -24,6 +24,7 @@ import { UserModule } from './user/user.module';
       isGlobal: true,
       inject: [ConfigService],
     }),
+
     ScheduleModule.forRoot(),
     PostingWindowModule,
 
