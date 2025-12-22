@@ -1,10 +1,13 @@
+import { InjectQueue } from '@nestjs/bullmq';
 import {
   ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
+import { Queue } from 'bullmq';
 import { Model } from 'mongoose';
+
 import { Post } from '../post/Schemas/post.entity';
 import { User } from '../user/Schemas/user.entity';
 import { CreateCommentDto } from './Dtos/createCommentDto';
@@ -14,124 +17,147 @@ import { Comment } from './schema/comment.entity';
 @Injectable()
 export class CommentService {
   constructor(
-    @InjectModel(Comment.name) private commentModel: Model<Comment>,
-    @InjectModel(Post.name) private postModel: Model<Post>,
-    @InjectModel(User.name) private userModel: Model<User>,
+    @InjectModel(Comment.name)
+    private readonly commentModel: Model<Comment>,
+
+    @InjectModel(Post.name)
+    private readonly postModel: Model<Post>,
+
+    @InjectModel(User.name)
+    private readonly userModel: Model<User>,
+
+    @InjectQueue('mail')
+    private readonly mailQueue: Queue,
   ) {}
 
-  async createComment(CreateCommentDto: CreateCommentDto, userId: string) {
-    const { postId, commentTitle, commentDescription } = CreateCommentDto;
+  // CREATE COMMENT
+
+  async createComment(
+    createCommentDto: CreateCommentDto,
+    userId: string,
+  ): Promise<Comment> {
+    const { postId, commentTitle, commentDescription } = createCommentDto;
 
     const findUser = await this.userModel.findById(userId);
-
     const findPost = await this.postModel.findById(postId);
 
-    if (!findUser || !findPost) {
-      if (!findUser && !findPost) {
-        throw new NotFoundException('User and Post both are invalid');
-      }
-      if (!findUser) {
-        throw new NotFoundException('User is invalid');
-      }
-      throw new NotFoundException('Post is invalid');
-    } else {
-      const newComment = new this.commentModel({
-        commentTitle,
-        commentDescription,
-        post: findPost._id,
-        user: findUser._id,
-      });
-      const savedComment = await newComment.save();
-
-      return savedComment;
+    if (!findUser && !findPost) {
+      throw new NotFoundException('User and Post both are invalid');
     }
+    if (!findUser) {
+      throw new NotFoundException('User is invalid');
+    }
+    if (!findPost) {
+      throw new NotFoundException('Post is invalid');
+    }
+
+    const savedComment = await this.commentModel.create({
+      commentTitle,
+      commentDescription,
+      post: findPost._id,
+      user: findUser._id,
+    });
+
+    const postOwnerId = findPost.user.toString();
+    const commenterId = findUser._id.toString();
+    const commentId = savedComment._id.toString();
+
+    await this.mailQueue.add('comment-notification', {
+      postOwnerId,
+      commenterId,
+      commentId,
+    });
+
+    return savedComment;
   }
 
+  // GET ALL COMMENTS
+
   async getAllComment(): Promise<Comment[]> {
-    const found = await this.commentModel
+    const comments = await this.commentModel
       .find()
       .populate({
         path: 'reply',
         model: 'Reply',
-        populate: [
-          {
-            path: 'reaction',
-            model: 'Reaction',
-          },
-        ],
+        populate: {
+          path: 'reaction',
+          model: 'Reaction',
+        },
       })
       .populate('user');
-    if (!found) {
-      throw new NotFoundException('Comments are not Created!');
-    } else {
-      return found;
+
+    if (!comments.length) {
+      throw new NotFoundException('Comments are not created yet');
     }
+
+    return comments;
   }
 
+  // GET COMMENT BY ID
+
   async getCommentById(id: string): Promise<Comment> {
-    const found = await this.commentModel
+    const comment = await this.commentModel
       .findById(id)
       .populate({
         path: 'replies',
         model: 'Reply',
-        populate: [
-          {
-            path: 'reaction',
-            model: 'Reaction',
-          },
-        ],
+        populate: {
+          path: 'reaction',
+          model: 'Reaction',
+        },
       })
       .populate('user');
-    if (!found) {
-      throw new NotFoundException('Comment Is Invalid.');
-    } else {
-      return found;
+
+    if (!comment) {
+      throw new NotFoundException('Comment is invalid');
     }
+
+    return comment;
   }
+
+  // UPDATE COMMENT TITLE AND DESCRIPTION
 
   async updateCommentTitleDescription(
     id: string,
-    UpdateCommentDto: UpdateCommentDto,
+    updateCommentDto: UpdateCommentDto,
     userId: string,
   ): Promise<Comment> {
-    const comment = await this.postModel.findById(id);
-    if (!comment) {
-      throw new NotFoundException('Post not found');
-    }
-    if (comment.user.toString() !== userId) {
-      throw new ForbiddenException('You are not allowed to modify this post');
-    }
-    const change = await this.commentModel.findByIdAndUpdate(
-      id,
-      { $set: UpdateCommentDto },
-      {
-        new: true,
-        runValidators: true,
-      },
-    );
-    if (!change) {
-      throw new NotFoundException('Comment is Invalid!');
-    } else {
-      console.log('Commment Updated.');
-      return change;
-    }
-  }
+    const comment = await this.commentModel.findById(id);
 
-  async deleteCommentById(commentId: string, userId: string): Promise<void> {
-    const found = await this.commentModel.findById(commentId);
-    if (!found) {
-      throw new NotFoundException('Comment Not Found.');
+    if (!comment) {
+      throw new NotFoundException('Comment not found');
     }
-    if (found.user.toString() !== userId) {
+
+    if (comment.user.toString() !== userId) {
       throw new ForbiddenException(
-        'You are not allowed to delete another user’s Comment.',
+        'You are not allowed to modify this comment',
       );
     }
-    // await this.userModel.updateOne(
-    //   { _id: found.user },
-    //   { $pull: { posts: found._id } },
-    // );
-    await found.deleteOne();
-    console.log('Comment Deleted.');
+
+    const updatedComment = await this.commentModel.findByIdAndUpdate(
+      id,
+      { $set: updateCommentDto },
+      { new: true, runValidators: true },
+    );
+
+    return updatedComment!;
+  }
+
+  // DELETE COMMENT BY ID
+
+  async deleteCommentById(commentId: string, userId: string): Promise<void> {
+    const comment = await this.commentModel.findById(commentId);
+
+    if (!comment) {
+      throw new NotFoundException('Comment not found');
+    }
+
+    if (comment.user.toString() !== userId) {
+      throw new ForbiddenException(
+        'You are not allowed to delete another user’s comment',
+      );
+    }
+
+    await comment.deleteOne();
   }
 }

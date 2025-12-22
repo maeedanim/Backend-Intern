@@ -1,23 +1,56 @@
-import { MailerService } from '@nestjs-modules/mailer';
+import { InjectQueue } from '@nestjs/bullmq';
 import { Injectable } from '@nestjs/common';
+import { Queue } from 'bullmq';
 
 @Injectable()
 export class MailService {
-  constructor(private mailer: MailerService) {}
+  constructor(
+    @InjectQueue('mail')
+    private readonly mailQueue: Queue,
+  ) {}
 
-  async sendUserCreatedEmail(email: string, name: string) {
-    await this.mailer.sendMail({
-      to: email,
-      subject: 'Welcome to Dev Community..!',
-      text: `Greetings ${name} !, Welcome to Dev Community, Your account has been created successfully.`,
-    });
+  async sendUserCreatedEmail(email: string, name: string): Promise<void> {
+    await this.mailQueue.add(
+      'user-created-email',
+      { email, name },
+      {
+        attempts: 3,
+        backoff: {
+          type: 'exponential',
+          delay: 5000,
+        },
+      },
+    );
   }
 
-  async sendTenDislikesEmail(email: string, type: string) {
-    await this.mailer.sendMail({
-      to: email,
-      subject: `Your ${type} received 10 dislikes`,
-      text: `Your ${type} has reached 10 dislikes. Please check your content.`,
-    });
+  async sendCommentNotificationEmail(
+    email: string,
+    message: string,
+  ): Promise<void> {
+    await this.mailQueue.add(
+      'comment-notification-email',
+      { email, message },
+      {
+        attempts: 3,
+        backoff: {
+          type: 'exponential',
+          delay: 5000,
+        },
+      },
+    );
+  }
+
+  async sendTenDislikesEmail(email: string, type: string): Promise<void> {
+    await this.mailQueue.add(
+      'ten-dislikes-email',
+      { email, type },
+      {
+        attempts: 3,
+        backoff: {
+          type: 'exponential',
+          delay: 5000,
+        },
+      },
+    );
   }
 }

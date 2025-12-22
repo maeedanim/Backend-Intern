@@ -1,3 +1,4 @@
+import { BullModule } from '@nestjs/bullmq';
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Post, PostSchema } from '../post/Schemas/post.entity';
@@ -8,6 +9,9 @@ import { Comment, CommentSchema } from './schema/comment.entity';
 
 @Module({
   imports: [
+    BullModule.registerQueue({
+      name: 'mail',
+    }),
     MongooseModule.forFeature([
       {
         name: Comment.name,

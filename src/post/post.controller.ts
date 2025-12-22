@@ -21,6 +21,7 @@ import { UpdatePostDto } from './Dtos/updatePostDto';
 import { AggregatedPost } from './post-aggregate.interface';
 import { PostService } from './post.service';
 import { PostingWindowGuard } from './posting-window/guards/postingWindow.guard';
+import { RateLimitGuard } from './posting-window/guards/rateLimit.guard';
 import { Post as postEntity } from './Schemas/post.entity';
 @ApiBearerAuth()
 @Controller('post')
@@ -54,11 +55,11 @@ export class PostController {
     summary: 'Search a specific Post with comments and replies using ID',
   })
   @Get('/:id')
-  getPostByID(@Param('id') id: string): Promise<AggregatedPost> {
-    return this.postService.getPostByID(id);
+  getPostById(@Param('id') id: string): Promise<AggregatedPost> {
+    return this.postService.getPostById(id);
   }
 
-  @UseGuards(AuthGuard, PostingWindowGuard)
+  @UseGuards(AuthGuard, PostingWindowGuard, RateLimitGuard)
   @ApiOperation({ summary: 'Create a Post' })
   @Post()
   async createPost(

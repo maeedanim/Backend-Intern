@@ -1,9 +1,11 @@
+import { Reflector } from '@nestjs/core';
 import { Test, TestingModule } from '@nestjs/testing';
 import { Request } from 'express';
 import { AuthGuard } from '../auth/guards/auth.guard';
 import { PostController } from './post.controller';
 import { PostService } from './post.service';
 import { PostingWindowGuard } from './posting-window/guards/postingWindow.guard';
+import { RateLimitGuard } from './posting-window/guards/rateLimit.guard';
 
 describe('PostController', () => {
   let controller: PostController;
@@ -25,16 +27,17 @@ describe('PostController', () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [PostController],
       providers: [
-        {
-          provide: PostService,
-          useValue: mockPostService,
-        },
+        { provide: PostService, useValue: mockPostService },
+        Reflector,
+        { provide: 'default_IORedisModuleConnectionToken', useValue: {} }, // Mock Redis
       ],
     })
       .overrideGuard(AuthGuard)
-      .useValue({ canActivate: () => true })
+      .useValue({ canActivate: () => true }) // Mock AuthGuard
       .overrideGuard(PostingWindowGuard)
-      .useValue({ canActivate: () => true })
+      .useValue({ canActivate: () => true }) // Mock PostingWindowGuard
+      .overrideGuard(RateLimitGuard)
+      .useValue({ canActivate: () => true }) // Mock RateLimitGuard
       .compile();
 
     controller = module.get<PostController>(PostController);
@@ -71,7 +74,10 @@ describe('PostController', () => {
   it('should delete own Post', async () => {
     mockPostService.deletePostById.mockResolvedValue(undefined);
 
-    const result = await controller.deletePostById(mockReq as Request, '1');
+    const result = await controller.deletePostById(
+      mockReq as unknown as Request,
+      '1',
+    );
 
     expect(result).toEqual({ message: 'Post Has Been Removed.' });
   });

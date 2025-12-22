@@ -45,7 +45,7 @@ export class PostService {
     if (cached) return cached;
 
     const posts = await this.postModel.aggregate<AggregatedPost>([
-      // Post Reactions (UNCHANGED)
+      // Post Reactions
       {
         $lookup: {
           from: 'reactions',
@@ -156,32 +156,23 @@ export class PostService {
     return posts;
   }
 
-  async getAllPost() {
+  async getAllPost(): Promise<AggregatedPost[]> {
     const result = await this.postModel.aggregate<AggregatedPost>([
-      // Post Author
+      // POST AUTHOR
       {
         $lookup: {
           from: 'users',
           let: { userId: '$user' },
           pipeline: [
-            {
-              $match: {
-                $expr: { $eq: ['$_id', '$$userId'] },
-              },
-            },
-            {
-              $project: {
-                password: 0,
-                __v: 0,
-              },
-            },
+            { $match: { $expr: { $eq: ['$_id', '$$userId'] } } },
+            { $project: { password: 0, __v: 0 } },
           ],
           as: 'user',
         },
       },
       { $unwind: '$user' },
 
-      // Post Reactions
+      // POST REACTIONS
       {
         $lookup: {
           from: 'reactions',
@@ -197,12 +188,7 @@ export class PostService {
                 },
               },
             },
-            {
-              $group: {
-                _id: '$type',
-                count: { $sum: 1 },
-              },
-            },
+            { $group: { _id: '$type', count: { $sum: 1 } } },
           ],
           as: 'postReactions',
         },
@@ -210,55 +196,37 @@ export class PostService {
       {
         $addFields: {
           reactions: {
-            likes: {
-              $ifNull: [
-                {
-                  $arrayElemAt: [
-                    {
-                      $filter: {
-                        input: '$postReactions',
-                        as: 'r',
-                        cond: { $eq: ['$$r._id', 'LIKE'] },
+            $let: {
+              vars: {
+                mapped: {
+                  $arrayToObject: {
+                    $map: {
+                      input: '$postReactions',
+                      as: 'r',
+                      in: {
+                        k: { $toLower: '$$r._id' },
+                        v: '$$r.count',
                       },
                     },
-                    0,
-                  ],
+                  },
                 },
-                { count: 0 },
-              ],
-            },
-            dislikes: {
-              $ifNull: [
-                {
-                  $arrayElemAt: [
-                    {
-                      $filter: {
-                        input: '$postReactions',
-                        as: 'r',
-                        cond: { $eq: ['$$r._id', 'DISLIKE'] },
-                      },
-                    },
-                    0,
-                  ],
-                },
-                { count: 0 },
-              ],
+              },
+              in: {
+                likes: { $ifNull: ['$$mapped.like', 0] },
+                dislikes: { $ifNull: ['$$mapped.dislike', 0] },
+              },
             },
           },
         },
       },
 
-      // Comments
+      // COMMENTS
       {
         $lookup: {
           from: 'comments',
           let: { postId: '$_id' },
           pipeline: [
-            {
-              $match: {
-                $expr: { $eq: ['$post', '$$postId'] },
-              },
-            },
+            { $match: { $expr: { $eq: ['$post', '$$postId'] } } },
 
             // Comment Author
             {
@@ -272,9 +240,9 @@ export class PostService {
                 as: 'user',
               },
             },
-            { $unwind: { path: '$user', preserveNullAndEmptyArrays: true } },
+            { $unwind: '$user' },
 
-            //Comment Reactions
+            // Comment Reactions
             {
               $lookup: {
                 from: 'reactions',
@@ -290,12 +258,7 @@ export class PostService {
                       },
                     },
                   },
-                  {
-                    $group: {
-                      _id: '$type',
-                      count: { $sum: 1 },
-                    },
-                  },
+                  { $group: { _id: '$type', count: { $sum: 1 } } },
                 ],
                 as: 'commentReactions',
               },
@@ -303,41 +266,39 @@ export class PostService {
             {
               $addFields: {
                 reactions: {
-                  likes: {
-                    $size: {
-                      $filter: {
-                        input: '$commentReactions',
-                        as: 'r',
-                        cond: { $eq: ['$$r._id', 'LIKE'] },
+                  $let: {
+                    vars: {
+                      mapped: {
+                        $arrayToObject: {
+                          $map: {
+                            input: '$commentReactions',
+                            as: 'r',
+                            in: {
+                              k: { $toLower: '$$r._id' },
+                              v: '$$r.count',
+                            },
+                          },
+                        },
                       },
                     },
-                  },
-                  dislikes: {
-                    $size: {
-                      $filter: {
-                        input: '$commentReactions',
-                        as: 'r',
-                        cond: { $eq: ['$$r._id', 'DISLIKE'] },
-                      },
+                    in: {
+                      likes: { $ifNull: ['$$mapped.like', 0] },
+                      dislikes: { $ifNull: ['$$mapped.dislike', 0] },
                     },
                   },
                 },
               },
             },
 
-            // Replies
+            // REPLIES
             {
               $lookup: {
                 from: 'replies',
                 let: { commentId: '$_id' },
                 pipeline: [
-                  {
-                    $match: {
-                      $expr: { $eq: ['$comment', '$$commentId'] },
-                    },
-                  },
+                  { $match: { $expr: { $eq: ['$comment', '$$commentId'] } } },
 
-                  // Reply Author
+                  /* Reply Author */
                   {
                     $lookup: {
                       from: 'users',
@@ -349,12 +310,7 @@ export class PostService {
                       as: 'user',
                     },
                   },
-                  {
-                    $unwind: {
-                      path: '$user',
-                      preserveNullAndEmptyArrays: true,
-                    },
-                  },
+                  { $unwind: '$user' },
 
                   // Reply Reactions
                   {
@@ -372,12 +328,7 @@ export class PostService {
                             },
                           },
                         },
-                        {
-                          $group: {
-                            _id: '$type',
-                            count: { $sum: 1 },
-                          },
-                        },
+                        { $group: { _id: '$type', count: { $sum: 1 } } },
                       ],
                       as: 'replyReactions',
                     },
@@ -385,22 +336,24 @@ export class PostService {
                   {
                     $addFields: {
                       reactions: {
-                        likes: {
-                          $size: {
-                            $filter: {
-                              input: '$replyReactions',
-                              as: 'r',
-                              cond: { $eq: ['$$r._id', 'LIKE'] },
+                        $let: {
+                          vars: {
+                            mapped: {
+                              $arrayToObject: {
+                                $map: {
+                                  input: '$replyReactions',
+                                  as: 'r',
+                                  in: {
+                                    k: { $toLower: '$$r._id' },
+                                    v: '$$r.count',
+                                  },
+                                },
+                              },
                             },
                           },
-                        },
-                        dislikes: {
-                          $size: {
-                            $filter: {
-                              input: '$replyReactions',
-                              as: 'r',
-                              cond: { $eq: ['$$r._id', 'DISLIKE'] },
-                            },
+                          in: {
+                            likes: { $ifNull: ['$$mapped.like', 0] },
+                            dislikes: { $ifNull: ['$$mapped.dislike', 0] },
                           },
                         },
                       },
@@ -415,7 +368,7 @@ export class PostService {
         },
       },
 
-      // Cleanup
+      // CLEANUP
       {
         $project: {
           postReactions: 0,
@@ -428,7 +381,7 @@ export class PostService {
     return result;
   }
 
-  async getPostByID(postId: string): Promise<AggregatedPost> {
+  async getPostById(postId: string): Promise<AggregatedPost> {
     const postObjectId = new Types.ObjectId(postId);
 
     const result = await this.postModel.aggregate<AggregatedPost>([

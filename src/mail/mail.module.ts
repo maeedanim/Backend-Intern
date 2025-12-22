@@ -1,11 +1,17 @@
 import { MailerModule } from '@nestjs-modules/mailer';
+import { BullModule } from '@nestjs/bullmq';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { MailController } from './mail.controller';
+import { MailProcessor } from './mail.processor';
 import { MailService } from './mail.service';
 
 @Module({
   imports: [
+    // bullmq mail queue
+    BullModule.registerQueue({
+      name: 'mail',
+    }),
+    // mailer module with gmail config
     ConfigModule,
     MailerModule.forRootAsync({
       imports: [ConfigModule],
@@ -24,8 +30,7 @@ import { MailService } from './mail.service';
       inject: [ConfigService],
     }),
   ],
-  providers: [MailService],
-  controllers: [MailController],
+  providers: [MailService, MailProcessor],
   exports: [MailService],
 })
 export class MailModule {}
