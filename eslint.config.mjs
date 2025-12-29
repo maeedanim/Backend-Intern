@@ -1,9 +1,8 @@
 // @ts-check
 import eslint from '@eslint/js';
-import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended';
-import unusedImports from 'eslint-plugin-unused-imports';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
+
 export default tseslint.config(
   {
     ignores: ['eslint.config.mjs'],
@@ -32,7 +31,8 @@ export default tseslint.config(
       '@typescript-eslint/no-unused-vars': 'off',
 
       // explicitness / types
-      
+      '@typescript-eslint/explicit-function-return-type': 'off',
+      '@typescript-eslint/explicit-module-boundary-types': 'off',
       '@typescript-eslint/naming-convention': 'warn',
       '@typescript-eslint/no-duplicate-enum-values': 'error',
       '@typescript-eslint/no-require-imports': 'error',
