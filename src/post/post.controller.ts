@@ -10,6 +10,7 @@ import {
   Post,
   Query,
   Req,
+  UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiQuery } from '@nestjs/swagger';
@@ -68,7 +69,7 @@ export class PostController {
   ): Promise<postEntity> {
     const userId = req.user?.userId;
     if (!userId) {
-      throw new error('Invalid User');
+      throw new UnauthorizedException('Invalid User');
     }
     return await this.postService.createPost(CreatePostDto, userId);
   }

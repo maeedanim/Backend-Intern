@@ -6,7 +6,7 @@ import { PostingWindowService } from './posting-window.service';
 export class PostingWindowCron {
   private readonly logger = new Logger(PostingWindowCron.name);
   constructor(private readonly postingWindowService: PostingWindowService) {}
-  @Cron('0 11 * * *', {
+  @Cron('0 9 * * *', {
     timeZone: 'Asia/Dhaka',
   })
   openPostingWindow() {
@@ -14,11 +14,11 @@ export class PostingWindowCron {
     this.logger.log('Posting window opened');
   }
 
-  @Cron('0 12 * * *', {
+  @Cron('0 22 * * *', {
     timeZone: 'Asia/Dhaka',
   })
   closePostingWindow() {
     this.postingWindowService.disable();
-    this.logger.log('Posting window closed');
+    this.logger.log('Posting window closed at 10 PM');
   }
 }
